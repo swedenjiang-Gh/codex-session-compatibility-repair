@@ -70,6 +70,8 @@ def main() -> int:
             ],
             input="1\n2\nAPPLY-NO-BACKUP\n",
             text=True,
+            encoding="utf-8",
+            errors="replace",
             capture_output=True,
             env=environment,
             timeout=60,
