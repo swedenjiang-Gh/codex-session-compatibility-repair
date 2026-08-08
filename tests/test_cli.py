@@ -33,6 +33,15 @@ class SelectionTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             cli.parse_selection("4", 3)
 
+    def test_parser_accepts_isolated_backup_and_log_roots(self) -> None:
+        arguments = cli.build_parser().parse_args(
+            ["--codex-root", "C:/fixture", "--backup-root", "D:/backup", "--log-root", "D:/log"]
+        )
+
+        self.assertEqual(arguments.codex_root, Path("C:/fixture"))
+        self.assertEqual(arguments.backup_root, Path("D:/backup"))
+        self.assertEqual(arguments.log_root, Path("D:/log"))
+
 
 class ProcessTests(unittest.TestCase):
     def test_tasklist_parser_returns_all_codex_process_names(self) -> None:

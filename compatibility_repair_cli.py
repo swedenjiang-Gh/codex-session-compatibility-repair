@@ -239,6 +239,8 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path.home() / ".codex",
         help="Codex 数据目录，默认是 %%USERPROFILE%%\\.codex",
     )
+    parser.add_argument("--backup-root", type=Path, help="备份根目录；默认优先使用 D:\\codex\\backups")
+    parser.add_argument("--log-root", type=Path, help="日志根目录；默认使用备份目录旁的 logs")
     parser.add_argument("--no-pause", action="store_true", help="结束时不等待按 Enter，供自动化测试使用")
     return parser
 
@@ -246,7 +248,11 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     arguments = build_parser().parse_args(argv)
     try:
-        return run_interactive(arguments.codex_root)
+        return run_interactive(
+            arguments.codex_root,
+            backup_root=arguments.backup_root,
+            log_root=arguments.log_root,
+        )
     except Exception as exc:
         print(f"错误：{exc}", file=sys.stderr)
         return 1

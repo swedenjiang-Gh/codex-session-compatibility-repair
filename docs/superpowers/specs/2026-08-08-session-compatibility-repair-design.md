@@ -7,14 +7,14 @@
 ## 用户流程
 
 1. 双击 `CodexSessionCompatibilityRepair.exe`。
-2. 工具扫描 `%USERPROFILE%\.codex\sessions` 和 `%USERPROFILE%\.codex\archived_sessions`。
-3. 仅显示包含非空 `response_item.payload.type = "reasoning"` 内容的候选任务，包括序号、任务 ID、日期、标题和命中数量。
+2. 若 Codex/ChatGPT 正在运行，工具先等待相关进程全部退出，最长 30 分钟；这是因为 Codex 可能独占会话文件。
+3. 工具扫描 `%USERPROFILE%\.codex\sessions` 和 `%USERPROFILE%\.codex\archived_sessions`，仅显示包含非空 `response_item.payload.type = "reasoning"` 内容的候选任务，包括序号、任务 ID、日期、标题和命中数量。
 4. 用户输入一个或多个序号，或输入 `ALL` 选择全部候选任务。
 5. 用户选择：
    - `1`：修复并备份，确认词为 `APPLY`；
    - `2`：修复但不备份，确认词为 `APPLY-NO-BACKUP`。
 6. 工具显示最终预览并等待正确确认词；其他输入均取消。
-7. 若 Codex/ChatGPT 正在运行，工具等待相关进程全部退出，最长 30 分钟。
+7. 写入前再次检查 Codex/ChatGPT 进程；若已重新打开，则再次等待退出。
 8. 工具逐个修复、验证并显示结果和日志路径。
 
 ## 修复边界
@@ -41,7 +41,7 @@
 
 - Python 3.11+ 标准库实现核心逻辑和控制台交互，不增加运行时第三方依赖。
 - 使用 `unittest` 覆盖扫描、选择、备份、无备份、文件变化拒绝、进程等待和 EXE 冒烟测试。
-- 使用 PyInstaller `--onefile --console` 构建独立 Windows EXE。
+- 使用 PyInstaller `--onefile --console` 构建独立 Windows EXE；本机不安装缺失依赖，由 GitHub Actions Windows runner 完成构建和 EXE 冒烟测试。
 - 仓库路径：`D:\GitHub\codex-session-compatibility-repair`。
 - GitHub 仓库：当前登录账号下的公开 `codex-session-compatibility-repair`。
 

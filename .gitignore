@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.venv/
+build/
+dist/
+*.spec
+*.jsonl
+*.log
+*.bak
+*.backup
+backups/
+.env
+.env.*
+config.toml
+auth.json
+

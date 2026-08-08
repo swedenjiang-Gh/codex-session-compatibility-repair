@@ -6,7 +6,7 @@
 
 **Architecture:** A standard-library Python core scans JSONL sessions and prepares byte-preserving replacements; a small interactive console frontend handles selection, backup choice, confirmation, and process waiting. PyInstaller packages the frontend as a one-file console EXE.
 
-**Tech Stack:** Python 3.11+, standard library, `unittest`, PowerShell 7 build script, PyInstaller, Git/GitHub CLI.
+**Tech Stack:** Python 3.11+, standard library, `unittest`, PowerShell 7 build script, PyInstaller on GitHub Actions Windows runner, Git/GitHub CLI.
 
 ## Global Constraints
 
@@ -14,7 +14,7 @@
 - Preserve every non-target JSONL line byte-for-byte.
 - Never read or publish API keys, proxy credentials, real sessions, backups, or logs.
 - Backup is user-selectable; `APPLY` confirms backup mode and `APPLY-NO-BACKUP` confirms no-backup mode.
-- Wait up to 30 minutes for `ChatGPT.exe`, `codex.exe`, and `codex-code-mode-host.exe` to exit.
+- Wait up to 30 minutes for `ChatGPT.exe`, `codex.exe`, and `codex-code-mode-host.exe` to exit before scanning and recheck before writing.
 - Do not modify `state_5.sqlite` or provider metadata.
 - Publish source to public `codex-session-compatibility-repair`; do not create a GitHub Release.
 
@@ -142,6 +142,7 @@ git commit -m "feat: add interactive compatibility repair workflow"
 - Create: `build-exe.ps1`
 - Create: `requirements-build.txt`
 - Create: `tests/exe_fixture.py`
+- Create: `.github/workflows/build.yml`
 - Create: `README.md`
 - Create: `LICENSE`
 - Create: `.gitignore`
@@ -162,13 +163,11 @@ Use detected Python 3.11+, invoke `python -m PyInstaller --onefile --console --n
 
 Document supported record shape, backup modes, exact confirmations, restore procedure, limitations, and privacy guarantees. Ignore build output, caches, virtual environments, `*.jsonl`, `*.log`, backup directories, `.env`, and secret/config files.
 
-- [ ] **Step 4: Run source tests and build EXE**
+- [ ] **Step 4: Run source tests locally and build EXE on GitHub Actions**
 
 Run: `python -m unittest discover -s tests -v`
 
-Run: `pwsh.exe -NoLogo -NoProfile -NonInteractive -File .\build-exe.ps1`
-
-Expected: tests PASS and EXE exists.
+After publication, the Windows workflow installs the pinned build dependency, runs tests, builds the EXE, and uploads the artifact. Local software installation is not required.
 
 - [ ] **Step 5: Run isolated EXE smoke test**
 
