@@ -57,6 +57,7 @@ def main() -> int:
         environment = os.environ.copy()
         environment["PATH"] = str(Path(os.environ["SystemRoot"]) / "System32")
         environment["PYTHONUTF8"] = "1"
+        environment["PYTHONIOENCODING"] = "utf-8"
         result = subprocess.run(
             [
                 str(executable),
