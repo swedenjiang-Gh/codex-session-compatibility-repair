@@ -179,7 +179,7 @@ def run_interactive(
 
     output_fn("\n修复预览：")
     output_fn(f"任务数量：{len(selected)}")
-    output_fn(f"reasoning 记录：{sum(item.incompatible_count for item in selected)}")
+    output_fn(f"不兼容记录：{sum(item.incompatible_count for item in selected)}")
     output_fn("备份：" + ("是" if with_backup else "否（不可回退）"))
     confirmation = input_fn(f"输入 {expected_confirmation} 执行，输入其他内容取消：").strip()
     if confirmation != expected_confirmation:
@@ -231,7 +231,7 @@ def run_interactive(
     if failures:
         output_fn(f"处理完成，但有 {failures} 个任务失败。")
         return 1
-    output_fn(f"修复完成，共清空 {modified_total} 条不兼容 reasoning 记录。")
+    output_fn(f"修复完成，共处理 {modified_total} 条不兼容记录。")
     if backup_directory is not None:
         output_fn(f"备份目录：{backup_directory}")
     return 0

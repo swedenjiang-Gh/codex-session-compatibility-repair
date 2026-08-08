@@ -133,6 +133,8 @@ class InteractiveTests(unittest.TestCase):
         result, output = self.run_cli(["1", "2", "APPLY-NO-BACKUP"])
 
         self.assertEqual(result, 0)
+        self.assertIn("不兼容记录：1", output)
+        self.assertIn("修复完成，共处理 1 条不兼容记录", output)
         self.assertIn("修复完成", output)
         self.assertEqual(self.reasoning_content(), [])
         self.assertFalse(self.backup_root.exists())

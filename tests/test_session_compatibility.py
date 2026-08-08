@@ -94,6 +94,42 @@ class ScannerTests(unittest.TestCase):
 
 
 class RepairTests(unittest.TestCase):
+    def test_repair_converts_call_prefixed_web_search_id(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "codex"
+            session = root / "sessions" / "candidate.jsonl"
+            original_lines = write_session(session, incompatible=0)
+            event_line = encode(
+                {
+                    "type": "event_msg",
+                    "payload": {
+                        "type": "web_search_end",
+                        "call_id": "call_00_example",
+                    },
+                }
+            )
+            search_line = encode(
+                {
+                    "type": "response_item",
+                    "payload": {
+                        "type": "web_search_call",
+                        "id": "call_00_example",
+                        "status": "completed",
+                        "action": {"type": "search", "query": "example"},
+                    },
+                }
+            )
+            session.write_bytes(b"".join(original_lines + [event_line, search_line]))
+
+            candidates = scan_sessions(root)
+
+            self.assertEqual(len(candidates), 1)
+            result = repair_session(candidates[0], backup_directory=None)
+            repaired_lines = session.read_bytes().splitlines(keepends=True)
+            self.assertEqual(result.modified_count, 1)
+            self.assertEqual(repaired_lines[-2], event_line)
+            self.assertEqual(json.loads(repaired_lines[-1])["payload"]["id"], "ws_00_example")
+
     def test_repair_clears_targets_preserves_other_lines_and_creates_backup(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp) / "codex"

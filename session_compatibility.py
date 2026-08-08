@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Scan and safely repair incompatible Codex reasoning history records."""
+"""Scan and safely repair incompatible Codex history records."""
 
 from __future__ import annotations
 
@@ -70,6 +70,21 @@ def _is_incompatible_reasoning(record: dict[str, object]) -> bool:
     )
 
 
+def _is_incompatible_web_search_call(record: dict[str, object]) -> bool:
+    payload = record.get("payload")
+    return bool(
+        record.get("type") == "response_item"
+        and isinstance(payload, dict)
+        and payload.get("type") == "web_search_call"
+        and isinstance(payload.get("id"), str)
+        and payload["id"].startswith("call_")
+    )
+
+
+def _is_incompatible_record(record: dict[str, object]) -> bool:
+    return _is_incompatible_reasoning(record) or _is_incompatible_web_search_call(record)
+
+
 def _inspect_session(path: Path, group: str) -> SessionCandidate | None:
     thread_id = ""
     title = ""
@@ -84,7 +99,7 @@ def _inspect_session(path: Path, group: str) -> SessionCandidate | None:
                 thread_id = str(payload.get("id") or thread_id)
                 title = str(payload.get("title") or title)
                 timestamp = str(record.get("timestamp") or timestamp)
-            if _is_incompatible_reasoning(record):
+            if _is_incompatible_record(record):
                 incompatible_count += 1
     if incompatible_count == 0:
         return None
@@ -147,6 +162,17 @@ def _prepare_repaired_lines(candidate: SessionCandidate, source_lines: list[byte
                 + _line_ending(line)
             )
             changed_indexes.add(index)
+        elif _is_incompatible_web_search_call(record):
+            payload = record["payload"]
+            assert isinstance(payload, dict)
+            identifier = payload["id"]
+            assert isinstance(identifier, str)
+            payload["id"] = "ws_" + identifier.removeprefix("call_")
+            repaired_lines.append(
+                json.dumps(record, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+                + _line_ending(line)
+            )
+            changed_indexes.add(index)
         else:
             repaired_lines.append(line)
     return repaired_lines, changed_indexes
@@ -193,12 +219,12 @@ def repair_session(candidate: SessionCandidate, *, backup_directory: Path | None
         remaining = 0
         for index, line in enumerate(verified_lines):
             record = _decode_record(line, temp_path, index + 1)
-            if _is_incompatible_reasoning(record):
+            if _is_incompatible_record(record):
                 remaining += 1
             if index not in changed_indexes and line != source_lines[index]:
                 raise RuntimeError(f"Non-target line changed: {index + 1}")
         if remaining:
-            raise RuntimeError(f"Prepared session still has {remaining} incompatible reasoning records")
+            raise RuntimeError(f"Prepared session still has {remaining} incompatible records")
 
         latest = candidate.path.stat()
         if latest.st_size != current.st_size or latest.st_mtime_ns != current.st_mtime_ns:
