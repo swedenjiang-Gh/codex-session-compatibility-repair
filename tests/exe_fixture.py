@@ -50,7 +50,18 @@ def main() -> int:
                 },
             }
         )
-        session.write_bytes(meta + user + reasoning)
+        web_search = encode(
+            {
+                "type": "response_item",
+                "payload": {
+                    "type": "web_search_call",
+                    "id": "call_00_fixture",
+                    "status": "completed",
+                    "action": {"type": "search", "query": "fixture"},
+                },
+            }
+        )
+        session.write_bytes(meta + user + reasoning + web_search)
         backup_root = temp_root / "backups"
         log_root = temp_root / "logs"
 
@@ -85,6 +96,8 @@ def main() -> int:
             raise AssertionError("EXE changed a non-target record")
         if json.loads(repaired[2])["payload"]["content"] != []:
             raise AssertionError("EXE did not clear incompatible reasoning content")
+        if json.loads(repaired[3])["payload"]["id"] != "ws_00_fixture":
+            raise AssertionError("EXE did not convert incompatible web search ID")
         if backup_root.exists():
             raise AssertionError("no-backup mode created a backup directory")
         if len(list(log_root.glob("*.log"))) != 1:
