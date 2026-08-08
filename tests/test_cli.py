@@ -44,6 +44,16 @@ class SelectionTests(unittest.TestCase):
 
 
 class ProcessTests(unittest.TestCase):
+    def test_configure_output_encoding_allows_chinese_on_legacy_codepage(self) -> None:
+        buffer = io.BytesIO()
+        stream = io.TextIOWrapper(buffer, encoding="cp1252", errors="strict")
+
+        cli.configure_output_encoding(stream)
+        stream.write("错误：测试")
+        stream.flush()
+
+        self.assertEqual(buffer.getvalue().decode("utf-8"), "错误：测试")
+
     def test_tasklist_parser_returns_all_codex_process_names(self) -> None:
         tasklist = (
             '"ChatGPT.exe","100","Console","1","10,000 K"\n'

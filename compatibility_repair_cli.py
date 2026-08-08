@@ -13,7 +13,7 @@ from pathlib import Path
 import subprocess
 import sys
 import time
-from typing import Callable, Iterable, Iterator
+from typing import Callable, Iterable, Iterator, TextIO
 
 from session_compatibility import (
     SessionCandidate,
@@ -24,6 +24,12 @@ from session_compatibility import (
 
 
 OutputFunction = Callable[[str], None]
+
+
+def configure_output_encoding(stream: TextIO) -> None:
+    reconfigure = getattr(stream, "reconfigure", None)
+    if callable(reconfigure):
+        reconfigure(encoding="utf-8", errors="replace")
 
 
 def parse_selection(text: str, candidate_count: int) -> list[int]:
@@ -246,6 +252,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    configure_output_encoding(sys.stdout)
+    configure_output_encoding(sys.stderr)
     arguments = build_parser().parse_args(argv)
     try:
         return run_interactive(
